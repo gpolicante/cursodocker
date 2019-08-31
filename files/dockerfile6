@@ -1,0 +1,5 @@
+FROM debian 
+COPY dir /dir 
+RUN ls /dir/ 
+RUN ls /dir/dir1/
+RUN ls /dir/dir2/ 

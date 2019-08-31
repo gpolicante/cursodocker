@@ -1,0 +1,3 @@
+FROM debian
+RUN apt update && apt install apache2 -y 
+CMD apachectl -D FOREGROUND

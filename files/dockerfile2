@@ -1,0 +1,4 @@
+FROM debian:9
+MAINTAINER gabriel@devops.com 
+RUN apt update && apt install -y  vim 
+CMD /bin/bash

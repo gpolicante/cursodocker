@@ -1,0 +1,5 @@
+# escape=`
+
+FROM mono
+COPY testfile.txt c:\
+RUN dir c:\

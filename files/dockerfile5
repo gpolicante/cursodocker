@@ -1,0 +1,5 @@
+FROM busybox
+ENV foo /etc
+WORKDIR ${foo}
+RUN pwd 
+
