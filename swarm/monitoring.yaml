@@ -1,0 +1,82 @@
+version: '3.3'
+
+services: 
+ influx: 
+  image: influxdb
+  volumes:
+    - data:/var/lib/influxdb
+  networks:
+   - monitoring
+  environment: 
+   - INFLUXDB_DB=cadvisor
+  deploy: 
+   placement: 
+    constraints:
+     - node.hostname ==  node1.devops.com
+   restart_policy:
+    condition: on-failure
+ 
+
+ agentes: 
+  image: google/cadvisor 
+  depends_on: 
+   - influx
+  networks:
+   - monitoring 
+  volumes: 
+     - /:/rootfs:ro
+     - /var/run:/var/run
+     - /sys:/sys:ro
+     - /var/lib/docker:/var/lib/docker:ro
+  deploy: 
+    mode: global 
+    update_config: 
+     parallelism: 1 
+     delay: 10s 
+    restart_policy: 
+     condition: on-failure
+  command: 
+    - "-logtostderr"
+    - "-docker_only"
+    - "-storage_driver=influxdb"
+    - "-storage_driver_db=cadvisor"
+    - "-storage_driver_host=influx:8087"
+
+ grafana: 
+  image: grafana/grafana
+  depends_on: 
+   - influx
+   - agentes
+  volumes: 
+   - grafana:/var/lib/grafana
+  networks: 
+   - monitoring
+   - traefik_traefik
+  deploy: 
+   labels:
+     - "traefik.port=3000"
+     - "traefik.backend=grafana"
+     - "traefik.backend.healthcheck.port=3000"
+     - "traefik.frontend.rule=Host:grafana.devops.com"
+     - "traefik.backend.healthcheck.interval=2s"
+     - "traefik.backend.loadbalancer.sticky=true"
+     -  "traefik.docker.network=traefik_traefik"
+   placement:
+    constraints:
+     - node.hostname ==  node1.devops.com
+   restart_policy:
+    condition: on-failure
+   replicas: 1 
+   
+    
+
+ 
+networks:
+ monitoring:
+ traefik_traefik:
+  external:
+   name: traefik_traefik
+
+volumes:
+  data: 
+  grafana: 
