@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  api2:
+    image: gpolicante/api:v2
+    networks:
+      - api2
+      - traefik_traefik
+    deploy: 
+     labels: 
+     - "traefik.port=80"
+     - "traefik.backend=api2"
+     - "traefik.backend.healthcheck.port=80"
+     - "traefik.frontend.rule=Host:api2.devops.com"
+     - "traefik.backend.healthcheck.interval=2s"
+     - "traefik.backend.loadbalancer.sticky=true"
+     -  "traefik.docker.network=traefik_traefik"
+     replicas: 2 
+     restart_policy: 
+      condition: on-failure
+     placement: 
+      constraints:
+        - node.role == worker
+     resources: 
+       limits: 
+         cpus: '0.5'
+         memory: '350M'
+       reservations: 
+         cpus: '0.1'
+         memory: '256M'   
+
+  redis:
+    image: redis:alpine
+    networks:
+     - api2
+    deploy: 
+     replicas: 1 
+     placement:
+      constraints: 
+       - node.role == worker 
+
+
+networks: 
+ api2: 
+ traefik_traefik: 
+  external: 
+   name: traefik_traefik
